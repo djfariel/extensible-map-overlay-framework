@@ -18,7 +18,7 @@ When a mod that uses EMOF is enabled, open the map in chart view and use **Chart
 
 Action buttons from the **Doodle** mod in Chart Controls.
 
-![Unannounced mod using EMOF overlay toggles](gallery/overlays.gif)
+![Unannounced mod using EMOF overlay toggles](https://raw.githubusercontent.com/djfariel/extensible-map-overlay-framework/refs/heads/main/gallery/overlays.gif)
 
 Overlay toggles from an unannounced mod.
 
