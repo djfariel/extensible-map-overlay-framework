@@ -1,0 +1,40 @@
+{
+  "name": "extensible-map-overlay-framework",
+  "version": "0.1.0",
+  "title": "Extensible Map Overlay Framework",
+  "author": "djfariel",
+  "homepage": "https://github.com/djfariel/extensible-map-overlay-framework",
+  "factorio_version": "2.0",
+  "description": "Library mod: Chart Controls API for overlays, actions, and map tools. Does nothing without dependent mods.",
+  "dependencies": [
+    "base >= 2.0"
+  ],
+  "package": {
+    "ignore": [
+      ".git/**",
+      ".gitignore",
+      ".idea/**",
+      ".vscode/**",
+      ".editorconfig",
+      "README.md",
+      "documentation.md",
+      "description.md",
+      "gallery/**",
+      "gallery/*.jpg",
+      "gallery/*.jpeg",
+      "thumbnail-large.png",
+      "tools/**",
+      "scripts/test/**",
+      "**/*.zip",
+      "Thumbs.db",
+      ".DS_Store"
+    ],
+    "gallery": [
+      "gallery/*.png"
+    ],
+    "prune_gallery": true,
+    "readme": "description.md",
+    "sync_portal_details": true,
+    "zipLocation": "outside"
+  }
+}

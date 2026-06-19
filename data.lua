@@ -1,0 +1,5 @@
+require("prototypes.custom-inputs")
+require("prototypes.cursor-tools")
+require("prototypes.shortcuts")
+require("prototypes.custom-events")
+require("prototypes.builtin-actions")
