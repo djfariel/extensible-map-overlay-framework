@@ -2,7 +2,8 @@ local registry = require("scripts.api.registry")
 
 local M = {}
 
-local QUICKBAR_SLOT_COUNT = 100
+local QUICKBAR_PAGE_COUNT = 10
+local DEFAULT_QUICKBAR_WIDTH = 10
 
 local function blocked_cursor_items()
   local blocked = {}
@@ -30,6 +31,15 @@ local function filter_item_name(filter)
   return nil
 end
 
+local function quickbar_width(player)
+  local width = player.quick_bar_width
+  if type(width) == "number" and width > 0 then
+    return width
+  end
+
+  return DEFAULT_QUICKBAR_WIDTH
+end
+
 function M.is_blocked_cursor_item(item_name)
   if type(item_name) ~= "string" or item_name == "" then
     return false
@@ -52,11 +62,14 @@ function M.clear_blocked_slots(player)
     return
   end
 
-  for index = 1, QUICKBAR_SLOT_COUNT do
-    local filter = player.get_quick_bar_slot(index)
-    local name = filter_item_name(filter)
-    if name and blocked[name] then
-      player.set_quick_bar_slot(index, nil)
+  local width = quickbar_width(player)
+  for page_index = 1, QUICKBAR_PAGE_COUNT do
+    for slot_index = 1, width do
+      local filter = player.get_quick_bar_slot(page_index, slot_index)
+      local name = filter_item_name(filter)
+      if name and blocked[name] then
+        player.set_quick_bar_slot(page_index, slot_index, nil)
+      end
     end
   end
 end

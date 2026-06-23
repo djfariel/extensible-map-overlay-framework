@@ -6,15 +6,21 @@ local function make_player_with_quickbar(opts)
   local player = player_fixtures.make_player(opts)
   local slots = {}
 
-  function player.get_quick_bar_slot(index)
-    return slots[index]
+  function player.get_quick_bar_slot(page_index, slot_index)
+    return slots[page_index] and slots[page_index][slot_index]
   end
 
-  function player.set_quick_bar_slot(index, filter)
-    slots[index] = filter
+  function player.set_quick_bar_slot(page_index, slot_index, filter)
+    slots[page_index] = slots[page_index] or {}
+    slots[page_index][slot_index] = filter
   end
 
   return player, slots
+end
+
+local function set_slot(slots, page_index, slot_index, filter)
+  slots[page_index] = slots[page_index] or {}
+  slots[page_index][slot_index] = filter
 end
 
 return {
@@ -37,13 +43,15 @@ return {
         })
 
         local player, slots = make_player_with_quickbar({ index = 1 })
-        slots[3] = { name = "emof-ping-tool" }
-        slots[7] = { name = "iron-plate" }
+        set_slot(slots, 1, 3, { name = "emof-ping-tool" })
+        set_slot(slots, 4, 3, { name = "emof-ping-tool" })
+        set_slot(slots, 1, 7, { name = "iron-plate" })
 
         quickbar_guard.clear_blocked_slots(player)
 
-        assert.falsy(slots[3], "expected blocked cursor tool to be cleared from quickbar")
-        assert.equals(slots[7].name, "iron-plate", "expected unrelated quickbar slot to remain")
+        assert.falsy(slots[1][3], "expected blocked cursor tool to be cleared from quickbar")
+        assert.falsy(slots[4][3], "expected blocked cursor tool to be cleared from later quickbar pages")
+        assert.equals(slots[1][7].name, "iron-plate", "expected unrelated quickbar slot to remain")
       end)
     end
   },
@@ -66,11 +74,11 @@ return {
         })
 
         local player, slots = make_player_with_quickbar({ index = 2 })
-        slots[1] = { name = "emof-tag-tool" }
+        set_slot(slots, 1, 1, { name = "emof-tag-tool" })
 
         quickbar_guard.on_player_set_quick_bar_slot({ player_index = player.index })
 
-        assert.falsy(slots[1], "expected event handler to clear blocked quickbar slot")
+        assert.falsy(slots[1][1], "expected event handler to clear blocked quickbar slot")
       end)
     end
   },

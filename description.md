@@ -2,7 +2,7 @@
 
 *(because emo-f, get it? It stands for extensible map overlay - framework. don't worry, the ai-generated girl isn't related)*
 
-**Library mod for Factorio 2.0.** EMOF extends the map **Chart Controls** panel so other mods can register overlay toggles, action buttons, and cursor-based map tools - without each mod reimplementing panel layout, toggle state, or cursor equip/cancel.
+**Library mod for Factorio.** EMOF extends the map **Chart Controls** panel so other mods can register overlay toggles, action buttons, and cursor-based map tools - without each mod reimplementing panel layout, toggle state, or cursor equip/cancel.
 
 **This mod does nothing on its own.** Install it when another mod lists `extensible-map-overlay-framework` as a dependency. By itself, EMOF only re-hosts vanilla Chart Controls overlay layers in one panel and includes built-in ping and tag tools that demonstrate the framework API. There is no standalone gameplay or content.
 
@@ -26,4 +26,4 @@ Those examples come from dependent mods, not from EMOF on its own.
 
 ## Mod authors
 
-Integration guide: [documentation.md](https://github.com/djfariel/extensible-map-overlay-framework/blob/main/documentation.md) in the [source repository](https://github.com/djfariel/extensible-map-overlay-framework). Runnable reference buttons live in the companion mod **emof-examples**.
+Integration guide: [documentation.md](https://github.com/djfariel/extensible-map-overlay-framework/blob/main/documentation.md) in the [source repository](https://github.com/djfariel/extensible-map-overlay-framework). Runnable reference buttons: companion mod **[EMOF Examples](https://mods.factorio.com/mod/emof-examples)**.

@@ -14,32 +14,6 @@ local registered_specs = {}
 local map_click_registered = false
 local cancel_registered = false
 
-local function clear_remote_click_position(player_index)
-  emof_storage.clear_remote_view_click_position(player_index)
-end
-
-local function should_wait_for_remote_click_release(player, event)
-  local pos = event.cursor_position
-  if not pos or player.controller_type ~= defines.controllers.remote then
-    return false
-  end
-
-  local positions = emof_storage.get_remote_view_click_positions()
-  local prev = positions[event.player_index]
-  local tick = event.tick or game.tick or 0
-
-  if prev
-    and prev.x == pos.x
-    and prev.y == pos.y
-    then
-    positions[event.player_index] = nil
-    return false
-  end
-
-  positions[event.player_index] = { x = pos.x, y = pos.y, tick = tick }
-  return true
-end
-
 local function storage_has_active_tool()
   for _, state in pairs(emof_storage.get_all_players()) do
     if state.active_tool ~= nil then
@@ -74,7 +48,6 @@ local function has_active_tool(skip_cursor_check)
       end
 
       state.active_tool = nil
-      clear_remote_click_position(player_index)
     end
   end
   return false
@@ -115,7 +88,6 @@ end
 local function end_tool(player, active_tool)
   local state = emof_storage.get_player_state(player.index)
   state.active_tool = nil
-  clear_remote_click_position(player.index)
 
   if active_tool and active_tool.cursor_item then
     cursor.clear(player, active_tool.cursor_item)
@@ -184,7 +156,6 @@ local function clear_or_cancel_player_tool(player_index, state, reason)
   end
 
   state.active_tool = nil
-  clear_remote_click_position(player_index)
 end
 
 local function cancel_matching_players(should_cancel, reason)
@@ -224,7 +195,6 @@ function M.start(player, spec)
   end
 
   M.cancel(player)
-  clear_remote_click_position(player.index)
 
   if not cursor.equip(player, spec.cursor_item, resolve_cursor_label_options(spec)) then
     return false
@@ -258,13 +228,11 @@ function M.cancel(player, reason)
   local state = emof_storage.get_player_state(player.index)
   local active_tool = state.active_tool
   if not active_tool then
-    clear_remote_click_position(player.index)
     return false
   end
 
   local cancelled_tool_id = active_tool.name
   state.active_tool = nil
-  clear_remote_click_position(player.index)
 
   local spec = active_spec(active_tool)
   if spec and spec.on_cancel then
@@ -296,7 +264,6 @@ function M.handle_primary_input(event)
   local active_tool = M.get(player)
   if not active_tool then
     M.sync_input_handlers()
-    clear_remote_click_position(player.index)
     return
   end
 
@@ -306,10 +273,6 @@ function M.handle_primary_input(event)
   end
 
   if event.in_gui then
-    return
-  end
-
-  if should_wait_for_remote_click_release(player, event) then
     return
   end
 

@@ -273,13 +273,13 @@ return {
     end
   },
   {
-    name = "tool_state remote click dispatches on matching release",
+    name = "tool_state remote click dispatches immediately",
     run = function()
       with_tool_state(function(ctx)
         local click_count = 0
         ctx.player.controller_type = defines.controllers.remote
         ctx.tool_state.start(ctx.player, {
-          name = "test-remote-dedupe",
+          name = "test-remote-immediate",
           cursor_item = "emof-ping-tool",
           on_click = function()
             click_count = click_count + 1
@@ -288,62 +288,29 @@ return {
         })
 
         ctx.tool_state.handle_primary_input({ player_index = 1, tick = 100, cursor_position = { x = 12, y = 34 } })
-        assert.equals(click_count, 0, "Expected first remote click event to wait for release")
-        assert.equals(ctx.emof_storage.get_remote_view_click_positions()[1].x, 12)
-        assert.equals(ctx.emof_storage.get_remote_view_click_positions()[1].y, 34)
-        assert.equals(ctx.emof_storage.get_remote_view_click_positions()[1].tick, 100)
+        assert.equals(click_count, 1, "Expected remote click event to dispatch immediately")
+      end)
+    end
+  },
+  {
+    name = "tool_state remote duplicate click positions are not deduplicated",
+    run = function()
+      with_tool_state(function(ctx)
+        local click_count = 0
+        ctx.player.controller_type = defines.controllers.remote
+        ctx.tool_state.start(ctx.player, {
+          name = "test-remote-duplicates",
+          cursor_item = "emof-ping-tool",
+          on_click = function()
+            click_count = click_count + 1
+            return "continue"
+          end
+        })
 
+        ctx.tool_state.handle_primary_input({ player_index = 1, tick = 100, cursor_position = { x = 12, y = 34 } })
         ctx.tool_state.handle_primary_input({ player_index = 1, tick = 120, cursor_position = { x = 12, y = 34 } })
-        assert.equals(click_count, 1, "Expected matching remote release to dispatch")
-        assert.falsy(ctx.emof_storage.get_remote_view_click_positions()[1], "Expected matching remote release to clear stored position")
-      end)
-    end
-  },
-  {
-    name = "tool_state remote distinct click positions keep waiting",
-    run = function()
-      with_tool_state(function(ctx)
-        local click_count = 0
-        ctx.player.controller_type = defines.controllers.remote
-        ctx.tool_state.start(ctx.player, {
-          name = "test-remote-distinct",
-          cursor_item = "emof-ping-tool",
-          on_click = function()
-            click_count = click_count + 1
-            return "continue"
-          end
-        })
 
-        ctx.tool_state.handle_primary_input({ player_index = 1, tick = 100, cursor_position = { x = 12, y = 34 } })
-        ctx.tool_state.handle_primary_input({ player_index = 1, tick = 120, cursor_position = { x = 13, y = 34 } })
-
-        assert.equals(click_count, 0, "Expected distinct remote positions to be treated as new first-click events")
-        assert.equals(ctx.emof_storage.get_remote_view_click_positions()[1].x, 13)
-        assert.equals(ctx.emof_storage.get_remote_view_click_positions()[1].y, 34)
-        assert.equals(ctx.emof_storage.get_remote_view_click_positions()[1].tick, 120)
-      end)
-    end
-  },
-  {
-    name = "tool_state remote matching release ignores disabled timeout",
-    run = function()
-      with_tool_state(function(ctx)
-        local click_count = 0
-        ctx.player.controller_type = defines.controllers.remote
-        ctx.tool_state.start(ctx.player, {
-          name = "test-remote-timeout",
-          cursor_item = "emof-ping-tool",
-          on_click = function()
-            click_count = click_count + 1
-            return "continue"
-          end
-        })
-
-        ctx.tool_state.handle_primary_input({ player_index = 1, tick = 100, cursor_position = { x = 12, y = 34 } })
-        ctx.tool_state.handle_primary_input({ player_index = 1, tick = 701, cursor_position = { x = 12, y = 34 } })
-
-        assert.equals(click_count, 1, "Expected matching remote click to dispatch while timeout check is disabled")
-        assert.falsy(ctx.emof_storage.get_remote_view_click_positions()[1], "Expected matching remote click to clear stored position")
+        assert.equals(click_count, 2, "Expected remote duplicate positions to both dispatch")
       end)
     end
   },
@@ -366,7 +333,6 @@ return {
         ctx.tool_state.handle_primary_input({ player_index = 1, cursor_position = { x = 12, y = 34 } })
 
         assert.equals(click_count, 2, "Expected non-remote duplicate positions to both dispatch")
-        assert.falsy(ctx.emof_storage.get_remote_view_click_positions()[1], "Expected non-remote clicks not to touch dedupe storage")
       end)
     end
   },

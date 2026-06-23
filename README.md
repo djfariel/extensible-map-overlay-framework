@@ -1,6 +1,6 @@
 # Extensible Map Overlay Framework
 
-Factorio 2.0 **library mod** that extends the map **Chart Controls** panel. Other mods register overlay toggles, action buttons, and map placement tools through EMOF instead of reimplementing panel layout or cursor management.
+Factorio **library mod** that extends the map **Chart Controls** panel. Other mods register overlay toggles, action buttons, and map placement tools through EMOF instead of reimplementing panel layout or cursor management.
 
 **This mod does nothing on its own** - enable it only when a dependent mod requires it.
 
@@ -14,9 +14,9 @@ Ship `thumbnail.png` in the mod root for the in-game mod browser and Mod Portal 
 
 Integration guide: **[documentation.md](documentation.md)** - quickstarts, API reference, events, and common mistakes.
 
-Runnable reference buttons: companion mod [`emof-examples`](../emof-examples/).
+Runnable reference buttons: companion mod **[EMOF Examples](https://mods.factorio.com/mod/emof-examples)** ([source](../emof-examples/)).
 
-Add `extensible-map-overlay-framework` to your mod dependencies (`base >= 2.0`).
+Add `extensible-map-overlay-framework` to your mod dependencies.
 
 ## For players
 

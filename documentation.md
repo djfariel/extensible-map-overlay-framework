@@ -1,6 +1,6 @@
 # EMOF Consumer API
 
-Runnable reference buttons live in the companion mod [`emof-examples`](../emof-examples/).
+Runnable reference buttons live in the companion mod **[EMOF Examples](https://mods.factorio.com/mod/emof-examples)** ([source](../emof-examples/)).
 
 ## Table of Contents
 
