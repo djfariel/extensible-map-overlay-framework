@@ -15,6 +15,28 @@ local view_context = require("scripts.map.view_context")
 
 local M = {}
 
+local pending_vanilla_options_sync = {}
+
+local function sync_vanilla_map_options(player)
+  player_settings.sync_vanilla_map_options_for_player(player)
+end
+
+local function queue_vanilla_map_options_resync(player_index)
+  if player_index then
+    pending_vanilla_options_sync[player_index] = true
+  end
+end
+
+local function drain_pending_vanilla_map_options_sync()
+  for player_index in pairs(pending_vanilla_options_sync) do
+    pending_vanilla_options_sync[player_index] = nil
+    local player = player_resolution.from_index(player_index)
+    if player then
+      sync_vanilla_map_options(player)
+    end
+  end
+end
+
 local function clear_registered_cursors(player)
   for _, spec in pairs(registry.get_tool_specs()) do
     if spec.cursor_item then
@@ -41,7 +63,7 @@ local function initialize_player(player)
 
   local state = emof_storage.get_player_state(player.index)
   chart_watchers.sync_tracking(player.index, state.panel_open)
-  player_settings.hide_vanilla_map_options_for_player(player)
+  sync_vanilla_map_options(player)
   settings_writer.ensure_default_map_settings(player)
   quickbar_guard.clear_blocked_slots(player)
   panel.refresh(player)
@@ -62,7 +84,8 @@ local function on_player_context_changed(event)
     return
   end
 
-  player_settings.hide_vanilla_map_options_for_player(player)
+  sync_vanilla_map_options(player)
+  queue_vanilla_map_options_resync(player.index)
   panel.refresh(player)
   tool_state.sync_input_handlers()
 end
@@ -77,6 +100,7 @@ end
 
 function M.on_player_left_game(event)
   chart_watchers.untrack(event.player_index)
+  pending_vanilla_options_sync[event.player_index] = nil
   cleanup_leaving_player(player_resolution.from_event(event))
   pollutant_display.clear_cache(event.player_index)
   emof_storage.remove_player(event.player_index)
@@ -103,6 +127,8 @@ function M.on_action_state_changed(event)
 end
 
 local function sync_chart_panel_on_tick(player, state)
+  sync_vanilla_map_options(player)
+
   local in_chart_view = view_context.is_chart_view(player)
 
   if in_chart_view ~= state.panel_visible then
@@ -135,6 +161,8 @@ function M.on_tick(event)
   if event.tick % constants.UPDATE_INTERVAL ~= 0 then
     return
   end
+
+  drain_pending_vanilla_map_options_sync()
 
   chart_watchers.each_tracked(function(player)
     sync_chart_panel_on_tick(player, emof_storage.get_player_state(player.index))

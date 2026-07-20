@@ -89,5 +89,70 @@ return {
         assert.equals(player.shortcut_toggled[constants.SHORTCUT_OPEN_PANEL], false)
       end)
     end
+  },
+  {
+    name = "on_player_controller_changed syncs vanilla map options",
+    run = function()
+      test_env.with_factorio_stubs(function()
+        local emof_storage = require("scripts.emof_storage")
+        local player_handler = require("scripts.handlers.player")
+        local player_fixtures = require("scripts.test.fixtures.player")
+
+        emof_storage.ensure_storage()
+        local player = player_fixtures.make_player({ index = 1, gui = true, shortcuts = true })
+        emof_storage.get_player_state(player.index).panel_open = false
+        player.game_view_settings = { show_map_view_options = true }
+        player.render_mode = defines.render_mode.chart
+
+        player_handler.on_player_controller_changed({ player_index = player.index })
+
+        assert.equals(player.game_view_settings.show_map_view_options, false)
+      end)
+    end
+  },
+  {
+    name = "on_tick does not poll untracked connected players for vanilla map options",
+    run = function()
+      test_env.with_factorio_stubs(function()
+        local constants = require("scripts.constants")
+        local emof_storage = require("scripts.emof_storage")
+        local player_handler = require("scripts.handlers.player")
+        local player_fixtures = require("scripts.test.fixtures.player")
+
+        emof_storage.ensure_storage()
+        local player = player_fixtures.make_player({ index = 1 })
+        player.game_view_settings = { show_map_view_options = true }
+        player.render_mode = defines.render_mode.chart
+        _G.game.connected_players = { player }
+
+        player_handler.on_tick({ tick = constants.UPDATE_INTERVAL })
+
+        assert.equals(player.game_view_settings.show_map_view_options, true)
+      end)
+    end
+  },
+  {
+    name = "pending controller re-sync runs once on next update tick",
+    run = function()
+      test_env.with_factorio_stubs(function()
+        local constants = require("scripts.constants")
+        local emof_storage = require("scripts.emof_storage")
+        local player_handler = require("scripts.handlers.player")
+        local player_fixtures = require("scripts.test.fixtures.player")
+
+        emof_storage.ensure_storage()
+        local player = player_fixtures.make_player({ index = 1, gui = true, shortcuts = true })
+        emof_storage.get_player_state(player.index).panel_open = false
+        player.game_view_settings = { show_map_view_options = false }
+        player.render_mode = defines.render_mode.chart
+        player_handler.on_player_controller_changed({ player_index = player.index })
+        assert.equals(player.game_view_settings.show_map_view_options, false)
+
+        player.render_mode = nil
+        player.controller_type = nil
+        player_handler.on_tick({ tick = constants.UPDATE_INTERVAL })
+        assert.equals(player.game_view_settings.show_map_view_options, true)
+      end)
+    end
   }
 }

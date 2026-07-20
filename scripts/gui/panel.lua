@@ -5,6 +5,7 @@ local panel_actions = require("scripts.gui.panel_actions")
 local panel_overlays = require("scripts.gui.panel_overlays")
 local player_resolution = require("scripts.player_resolution")
 local player_iteration = require("scripts.map.player_iteration")
+local player_settings = require("scripts.map.player_settings")
 local settings_writer = require("scripts.map.settings_writer")
 local setup_dispatch = require("scripts.tools.setup_dispatch")
 local emof_storage = require("scripts.emof_storage")
@@ -57,6 +58,7 @@ function M.close(player)
   state.panel_open = false
   panel_layout.clear_layout_cache(state)
   chart_watchers.untrack(player.index)
+  player_settings.sync_vanilla_map_options_for_player(player)
   M.sync_shortcut(player)
   M.destroy(player)
 end
@@ -65,6 +67,7 @@ function M.open(player)
   local state = emof_storage.get_player_state(player.index)
   state.panel_open = true
   chart_watchers.track(player.index)
+  player_settings.sync_vanilla_map_options_for_player(player)
   M.sync_shortcut(player)
   M.refresh(player)
 end

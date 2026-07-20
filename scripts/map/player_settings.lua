@@ -4,7 +4,7 @@ local view_context = require("scripts.map.view_context")
 local M = {}
 
 function M.set_vanilla_map_options_visible(player, visible)
-  if not (player and player.valid) then
+  if not (player and player.valid and player.game_view_settings) then
     return
   end
 
