@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.1
+Date: 2026-07-20
+  Bugfixes:
+    - Vanilla Chart Controls (map legend) are hidden only while in chart/map view and restored when leaving, so removing EMOF no longer leaves the legend permanently missing on that save.
+  Info:
+    - If a save already lost the map legend after removing an older EMOF build, run:
+      /c game.player.game_view_settings.show_map_view_options = true
+    - Multiplayer (all players):
+      /c for _, p in pairs(game.players) do p.game_view_settings.show_map_view_options = true end
+---------------------------------------------------------------------------------------------------
 Version: 1.0.0
 Date: 2026-06-23
   Changes:
