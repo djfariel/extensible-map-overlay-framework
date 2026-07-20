@@ -4,7 +4,6 @@ local builtin_tools = require("scripts.api.builtin_tools")
 local callbacks = require("scripts.api.callbacks")
 local mod_data_loader = require("scripts.api.mod_data_loader")
 local player_iteration = require("scripts.map.player_iteration")
-local player_settings = require("scripts.map.player_settings")
 local quickbar_guard = require("scripts.tools.quickbar_guard")
 local registry = require("scripts.api.registry")
 local remote_interface = require("scripts.api.remote_interface")
@@ -52,14 +51,12 @@ end
 function M.on_init()
   emof_storage.ensure_storage()
   reload_button_registry()
-  player_settings.hide_vanilla_map_options_for_all_players()
   initialize_players()
 end
 
 function M.on_configuration_changed()
   emof_storage.ensure_storage()
   reload_button_registry()
-  player_settings.hide_vanilla_map_options_for_all_players()
   initialize_players({ merge_vanilla_settings = true })
   player_iteration.each_connected(quickbar_guard.clear_blocked_slots)
 end

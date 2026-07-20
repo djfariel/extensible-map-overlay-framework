@@ -139,5 +139,28 @@ return {
         assert.contains(tostring(err), "unknown map tool")
       end)
     end
+  },
+  {
+    name = "bootstrap does not force-hide vanilla map options for all players",
+    run = function()
+      test_env.with_factorio_stubs(function()
+        local player_fixtures = require("scripts.test.fixtures.player")
+        local bootstrap = require("scripts.bootstrap")
+
+        local player = player_fixtures.make_player({ index = 1, gui = true, shortcuts = true })
+        player.game_view_settings = { show_map_view_options = true }
+        player.render_mode = nil
+        player.controller_type = nil
+        _G.game.players[1] = player
+        _G.game.connected_players = { player }
+
+        bootstrap.on_init()
+        assert.equals(player.game_view_settings.show_map_view_options, true)
+
+        player.game_view_settings.show_map_view_options = true
+        bootstrap.on_configuration_changed()
+        assert.equals(player.game_view_settings.show_map_view_options, true)
+      end)
+    end
   }
 }

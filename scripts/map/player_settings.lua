@@ -1,4 +1,3 @@
-local player_iteration = require("scripts.map.player_iteration")
 local view_context = require("scripts.map.view_context")
 
 local M = {}
@@ -17,17 +16,6 @@ function M.sync_vanilla_map_options_for_player(player)
   end
 
   M.set_vanilla_map_options_visible(player, not view_context.is_chart_view(player))
-end
-
--- Temporary wrappers until bootstrap/handler call sites are updated (Task 3).
-function M.hide_vanilla_map_options_for_player(player)
-  M.set_vanilla_map_options_visible(player, false)
-end
-
-function M.hide_vanilla_map_options_for_all_players()
-  player_iteration.each_saved(function(player)
-    M.hide_vanilla_map_options_for_player(player)
-  end)
 end
 
 return M
