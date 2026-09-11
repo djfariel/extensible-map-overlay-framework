@@ -19,8 +19,6 @@ jobs:
     name: Unit Tests
     runs-on: factorio-linux
     if: ${{ !github.event.pull_request.draft }}
-    container:
-      image: ghcr.io/djfariel/factorio-runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,40 +30,51 @@ jobs:
     name: Headless Lifecycle Test
     runs-on: factorio-linux
     if: ${{ !github.event.pull_request.draft }}
-    container:
-      image: ghcr.io/djfariel/factorio-runner
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Package mod
         run: |
-          MOD_NAME=$(jq -r '.name' info.json)
-          MOD_VERSION=$(jq -r '.version' info.json)
-          MOD_DIR="${MOD_NAME}_${MOD_VERSION}"
+          # Parse info.json with python3
+          MOD_NAME=$(python3 -c "import json; print(json.load(open('info.json'))['name'])")
+          MOD_VERSION=$(python3 -c "import json; print(json.load(open('info.json'))['version'])")
+          MOD_DIR="mods/${MOD_NAME}_${MOD_VERSION}"
           
-          mkdir -p mods
+          echo "Packaging ${MOD_NAME} version ${MOD_VERSION}"
+          
           mkdir -p "$MOD_DIR"
           
-          # Copy mod files (excluding ignored files per info.json)
-          rsync -a --exclude='.git' \
-                   --exclude='.gitignore' \
-                   --exclude='.idea' \
-                   --exclude='.vscode' \
-                   --exclude='.editorconfig' \
-                   --exclude='README.md' \
-                   --exclude='documentation.md' \
-                   --exclude='description.md' \
-                   --exclude='gallery' \
-                   --exclude='thumbnail-large.png' \
-                   --exclude='tools' \
-                   --exclude='*.zip' \
-                   . "$MOD_DIR/"
+          # Copy mod files, excluding paths from info.json package.ignore
+          python3 << 'PYEOF'
+import os
+import shutil
+from pathlib import Path
+
+mod_dir = os.environ.get('MOD_DIR')
+exclude_patterns = {
+    '.git', '.gitignore', '.idea', '.vscode', '.editorconfig',
+    'README.md', 'documentation.md', 'description.md', 'gallery',
+    'thumbnail-large.png', 'tools', 'scripts/test'
+}
+
+for item in Path('.').iterdir():
+    if item.name in exclude_patterns or item.name.startswith('.'):
+        continue
+    if item.name == 'mods':
+        continue
+    
+    dest = Path(mod_dir) / item.name
+    if item.is_dir():
+        shutil.copytree(item, dest, dirs_exist_ok=True)
+    else:
+        if not item.name.endswith('.zip'):
+            shutil.copy2(item, dest)
+
+print(f"Copied mod to {mod_dir}")
+PYEOF
           
-          # Create zip
-          zip -r "mods/${MOD_DIR}.zip" "$MOD_DIR"
-          
-          echo "Packaged mod: ${MOD_DIR}.zip"
+          echo "Packaged mod directory: ${MOD_DIR}"
 
       - name: Create mod-list.json
         run: |
