@@ -1,0 +1,131 @@
+name: Verify
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+      - synchronize
+  workflow_dispatch:
+
+jobs:
+  unit:
+    name: Unit Tests
+    runs-on: factorio-linux
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run unit tests
+        run: lua5.4 tools/run-unit-tests.lua
+
+  headless-lifecycle:
+    name: Headless Lifecycle Test
+    runs-on: factorio-linux
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package mod
+        run: |
+          # Parse info.json with python3
+          MOD_NAME=$(python3 -c "import json; print(json.load(open('info.json'))['name'])")
+          MOD_VERSION=$(python3 -c "import json; print(json.load(open('info.json'))['version'])")
+          MOD_DIR="mods/${MOD_NAME}_${MOD_VERSION}"
+          export MOD_DIR
+          
+          echo "Packaging ${MOD_NAME} version ${MOD_VERSION}"
+          
+          mkdir -p "$MOD_DIR"
+          
+          # Copy mod files, excluding paths from info.json package.ignore
+          python3 << 'PYEOF'
+import os
+import shutil
+from pathlib import Path
+
+mod_dir = os.environ.get('MOD_DIR')
+exclude_top_level = {
+    '.git', '.gitignore', '.idea', '.vscode', '.editorconfig',
+    'README.md', 'documentation.md', 'description.md', 'gallery',
+    'thumbnail-large.png', 'tools'
+}
+
+def ignore_patterns(dir_path, names):
+    ignored = []
+    for name in names:
+        if name.endswith('.zip'):
+            ignored.append(name)
+        # Exclude scripts/test subdirectory
+        if dir_path.endswith('scripts') and name == 'test':
+            ignored.append(name)
+    return ignored
+
+for item in Path('.').iterdir():
+    if item.name in exclude_top_level or item.name.startswith('.'):
+        continue
+    if item.name == 'mods':
+        continue
+    
+    dest = Path(mod_dir) / item.name
+    if item.is_dir():
+        shutil.copytree(item, dest, ignore=ignore_patterns, dirs_exist_ok=True)
+    else:
+        if not item.name.endswith('.zip'):
+            shutil.copy2(item, dest)
+
+print(f"Copied mod to {mod_dir}")
+PYEOF
+          
+          echo "Packaged mod directory: ${MOD_DIR}"
+
+      - name: Create mod-list.json
+        run: |
+          cat > mods/mod-list.json << 'EOF'
+          {
+            "mods": [
+              {
+                "name": "base",
+                "enabled": true
+              },
+              {
+                "name": "extensible-map-overlay-framework",
+                "enabled": true
+              }
+            ]
+          }
+          EOF
+
+      - name: Run Factorio headless
+        run: |
+          timeout 180s /opt/factorio/headless/bin/x64/factorio \
+            --mod-directory "$PWD/mods" \
+            --create /tmp/test-save.zip || EXIT_CODE=$?
+          
+          if [ "${EXIT_CODE:-0}" -eq 124 ]; then
+            echo "ERROR: Factorio timed out after 180 seconds"
+            exit 1
+          elif [ "${EXIT_CODE:-0}" -ne 0 ]; then
+            echo "ERROR: Factorio exited with code $EXIT_CODE"
+            exit $EXIT_CODE
+          fi
+          
+          echo "Factorio headless lifecycle test passed"
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: factorio-logs
+          path: |
+            /tmp/factorio-*.log
+            mods/
+          if-no-files-found: ignore
