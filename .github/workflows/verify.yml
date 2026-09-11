@@ -48,42 +48,42 @@ jobs:
           
           # Copy mod files, excluding paths from info.json package.ignore
           python3 << 'PYEOF'
-import os
-import shutil
-from pathlib import Path
-
-mod_dir = os.environ.get('MOD_DIR')
-exclude_top_level = {
-    '.git', '.gitignore', '.idea', '.vscode', '.editorconfig',
-    'README.md', 'documentation.md', 'description.md', 'gallery',
-    'thumbnail-large.png', 'tools'
-}
-
-def ignore_patterns(dir_path, names):
-    ignored = []
-    for name in names:
-        if name.endswith('.zip'):
-            ignored.append(name)
-        # Exclude scripts/test subdirectory
-        if dir_path.endswith('scripts') and name == 'test':
-            ignored.append(name)
-    return ignored
-
-for item in Path('.').iterdir():
-    if item.name in exclude_top_level or item.name.startswith('.'):
-        continue
-    if item.name == 'mods':
-        continue
-    
-    dest = Path(mod_dir) / item.name
-    if item.is_dir():
-        shutil.copytree(item, dest, ignore=ignore_patterns, dirs_exist_ok=True)
-    else:
-        if not item.name.endswith('.zip'):
-            shutil.copy2(item, dest)
-
-print(f"Copied mod to {mod_dir}")
-PYEOF
+          import os
+          import shutil
+          from pathlib import Path
+          
+          mod_dir = os.environ.get('MOD_DIR')
+          exclude_top_level = {
+              '.git', '.gitignore', '.idea', '.vscode', '.editorconfig',
+              'README.md', 'documentation.md', 'description.md', 'gallery',
+              'thumbnail-large.png', 'tools'
+          }
+          
+          def ignore_patterns(dir_path, names):
+              ignored = []
+              for name in names:
+                  if name.endswith('.zip'):
+                      ignored.append(name)
+                  # Exclude scripts/test subdirectory
+                  if dir_path.endswith('scripts') and name == 'test':
+                      ignored.append(name)
+              return ignored
+          
+          for item in Path('.').iterdir():
+              if item.name in exclude_top_level or item.name.startswith('.'):
+                  continue
+              if item.name == 'mods':
+                  continue
+              
+              dest = Path(mod_dir) / item.name
+              if item.is_dir():
+                  shutil.copytree(item, dest, ignore=ignore_patterns, dirs_exist_ok=True)
+              else:
+                  if not item.name.endswith('.zip'):
+                      shutil.copy2(item, dest)
+          
+          print(f"Copied mod to {mod_dir}")
+          PYEOF
           
           echo "Packaged mod directory: ${MOD_DIR}"
 
